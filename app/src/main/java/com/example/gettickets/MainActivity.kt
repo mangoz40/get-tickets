@@ -18,7 +18,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.gettickets.ui.theme.GetTicketsTheme
 
 import com.example.gettickets.view.EventListScreen
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -14,38 +14,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import java.time.*
 import java.time.format.DateTimeFormatter
 
 import com.example.gettickets.model.Event
+import com.example.gettickets.ui.state.EventUiState
+import com.example.gettickets.viewmodel.EventViewModel
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EventListScreen(
     modifier: Modifier = Modifier,
+    viewModel: EventViewModel = hiltViewModel(),
     onEventClick: (Event) -> Unit = {}
 ) {
-    // Sample events - In real app, this would come from ViewModel
-    val events = remember {
-        mutableStateListOf(
-            Event(
-                1,
-                "Tech Conference 2025",
-                "Annual technology conference featuring the latest innovations",
-                LocalDateTime.now().plusDays(5),
-                "Convention Center"
-            ),
-            Event(
-                2,
-                "Music Festival",
-                "Three-day music festival featuring top artists",
-                LocalDateTime.now().plusDays(10),
-                "Central Park"
-            ),
-            // Add more sample events as needed
-        )
-    }
+    val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
         topBar = {
@@ -58,18 +43,51 @@ fun EventListScreen(
             )
         }
     ) { paddingValues ->
-        LazyColumn(
+        Box(
             modifier = modifier
                 .fillMaxSize()
-                .padding(paddingValues),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(16.dp)
+                .padding(paddingValues)
         ) {
-            items(events) { event ->
-                EventCard(
-                    event = event,
-                    onClick = { onEventClick(event) }
-                )
+            when (uiState) {
+                is EventUiState.Loading -> {
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
+                is EventUiState.Success -> {
+                    val events = (uiState as EventUiState.Success).events as List<Event>
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        contentPadding = PaddingValues(16.dp)
+                    ) {
+                        items(events) { event ->
+                            EventCard(
+                                event = event,
+                                onClick = { onEventClick(event) }
+                            )
+                        }
+                    }
+                }
+                is EventUiState.Error -> {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = (uiState as EventUiState.Error).message,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Button(onClick = { viewModel.loadEvents() }) {
+                            Text("Retry")
+                        }
+                    }
+                }
             }
         }
     }
@@ -104,7 +122,7 @@ fun EventCard(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = event.description,
+                text = event.description ?: "Maluzi",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 2,
@@ -124,7 +142,7 @@ fun EventCard(
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = event.datetime.format(dateFormatter),
+                    text = event.date!!.format(dateFormatter),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.secondary
                 )
@@ -143,7 +161,7 @@ fun EventCard(
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = event.location,
+                    text = event.location ?: "Maluzi",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.secondary
                 )
