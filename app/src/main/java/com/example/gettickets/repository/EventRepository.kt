@@ -32,6 +32,26 @@ class EventRepository @Inject constructor(
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
+    fun getEventById(eventId: Int): Flow<Resource<Event>> = flow {
+        try {
+            emit(Resource.Loading())
+            val response = api.getEventById(eventId)
+            if (response.isSuccessful) {
+                val event = response.body()?.toEvent()
+                if (event != null) {
+                    emit(Resource.Success(event))
+                } else {
+                    emit(Resource.Error("Event not found"))
+                }
+            } else {
+                emit(Resource.Error("Failed to fetch event: ${response.message()}"))
+            }
+        } catch (e: Exception) {
+            emit(Resource.Error(e.message ?: "An error occurred"))
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun Event.toEvent(): Event {
         return Event(
             id = id,
@@ -45,4 +65,6 @@ class EventRepository @Inject constructor(
             updated_at = updated_at
         )
     }
+
+
 }

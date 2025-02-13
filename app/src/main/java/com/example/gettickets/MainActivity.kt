@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.gettickets.navigation.AppNavigation
 import com.example.gettickets.ui.theme.GetTicketsTheme
 
 import com.example.gettickets.view.EventListScreen
@@ -32,14 +33,8 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    EventListScreen(
-                        onEventClick = { event ->
-                            // Handle event click - for example:
-                            // Toast.makeText(this, "Clicked: ${event.title}", Toast.LENGTH_SHORT).show()
-                            // Or navigate to event details:
-                            // startActivity(EventDetailsActivity.createIntent(this, event.id))
-                        }
-                    )
+                    AppNavigation()
+
                 }
             }
         }
