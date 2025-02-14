@@ -12,13 +12,17 @@ import androidx.navigation.navArgument
 import com.example.gettickets.view.EventListScreen
 import com.example.gettickets.view.BookingScreen
 import com.example.gettickets.view.QRScannerScreen
+import com.example.gettickets.view.ShowEvent
 
 sealed class Screen(val route: String) {
     object EventList : Screen("eventList")
     object Booking : Screen("booking/{eventId}") {
         fun createRoute(eventId: Int) = "booking/$eventId"
     }
-    object QRScanner : Screen("qrScanner") // Add this
+    object QRScanner : Screen("qrScanner")
+    object ShowEvent : Screen("booking/{eventId}") {
+        fun createRoute(eventId: Int) = "booking/$eventId"
+    }
 }
 
 @RequiresApi(Build.VERSION_CODES.P)
@@ -56,15 +60,25 @@ fun AppNavigation() {
         composable(Screen.QRScanner.route) {
             QRScannerScreen(
                 onQRCodeScanned = { qrContent ->
-                    // Handle the QR code content - you might want to parse it
-                    // to get an event ID and navigate to booking
-                    navController.popBackStack()
+                    navController.navigate(Screen.ShowEvent.createRoute(1))
                 },
                 onDismiss = {
                     navController.popBackStack()
                 }
             )
         }
+        composable(
+        route = Screen.ShowEvent.route,
+        arguments = listOf(
+            navArgument("eventId") { type = NavType.IntType }
+        )
+        ) { backStackEntry ->
+            ShowEvent(
+                eventId = 1,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
     }
+
 }
 

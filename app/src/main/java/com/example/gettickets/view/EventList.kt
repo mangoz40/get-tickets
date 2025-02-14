@@ -54,17 +54,7 @@ fun EventListScreen(
     val uiState by viewModel.uiState.collectAsState()
     var showScanner by remember { mutableStateOf(false) }
 
-    if (showScanner) {
-        QRScannerScreen(
-            onQRCodeScanned = { qrContent ->
-                // Handle the scanned QR code content
-                showScanner = false
-            },
-            onDismiss = {
-                showScanner = false
-            }
-        )
-    }
+
 
     Scaffold(
         topBar = {

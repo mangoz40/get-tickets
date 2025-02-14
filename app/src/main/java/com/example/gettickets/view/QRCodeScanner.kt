@@ -32,6 +32,7 @@ fun QRScannerScreen(
     val context = LocalContext.current
     var hasCameraPermission by remember { mutableStateOf(false) }
     var scannedContent by remember { mutableStateOf<String?>(null) }
+    var isScanning by remember { mutableStateOf(true) }
 
     // Permission launcher
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -53,56 +54,78 @@ fun QRScannerScreen(
     val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
     val barcodeScanner = remember { BarcodeScanning.getClient() }
 
-    LaunchedEffect(hasCameraPermission) {
+    // Remember the camera provider to be able to unbind/bind when needed
+    var cameraProvider by remember { mutableStateOf<ProcessCameraProvider?>(null) }
+    var imageAnalysis by remember { mutableStateOf<ImageAnalysis?>(null) }
+
+    LaunchedEffect(hasCameraPermission, isScanning) {
         if (hasCameraPermission) {
-            val cameraProvider = cameraProviderFuture.get()
+            cameraProvider = cameraProviderFuture.get()
+
             val preview = Preview.Builder()
                 .setTargetResolution(Size(1280, 720))
                 .build()
                 .also { it.setSurfaceProvider(previewView.surfaceProvider) }
 
-            val imageAnalysis = ImageAnalysis.Builder()
-                .setTargetResolution(Size(1280, 720))
-                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                .build()
+            if (isScanning) {
+                imageAnalysis = ImageAnalysis.Builder()
+                    .setTargetResolution(Size(1280, 720))
+                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                    .build()
 
-            imageAnalysis.setAnalyzer(
-                ContextCompat.getMainExecutor(context)
-            ) { imageProxy ->
-                val mediaImage = imageProxy.image
-                if (mediaImage != null) {
-                    val image = InputImage.fromMediaImage(
-                        mediaImage,
-                        imageProxy.imageInfo.rotationDegrees
-                    )
+                imageAnalysis?.setAnalyzer(
+                    ContextCompat.getMainExecutor(context)
+                ) { imageProxy ->
+                    val mediaImage = imageProxy.image
+                    if (mediaImage != null) {
+                        val image = InputImage.fromMediaImage(
+                            mediaImage,
+                            imageProxy.imageInfo.rotationDegrees
+                        )
 
-                    barcodeScanner.process(image)
-                        .addOnSuccessListener { barcodes ->
-                            for (barcode in barcodes) {
-                                barcode.rawValue?.let { qrContent ->
-                                    scannedContent = qrContent
-                                    onQRCodeScanned(qrContent)
+                        barcodeScanner.process(image)
+                            .addOnSuccessListener { barcodes ->
+                                for (barcode in barcodes) {
+                                    barcode.rawValue?.let { qrContent ->
+                                        if (isScanning) {
+                                            scannedContent = qrContent
+                                            isScanning = false
+                                            onQRCodeScanned(qrContent)
+                                        }
+                                    }
                                 }
                             }
-                        }
-                        .addOnCompleteListener {
-                            imageProxy.close()
-                        }
-                } else {
-                    imageProxy.close()
+                            .addOnCompleteListener {
+                                imageProxy.close()
+                            }
+                    } else {
+                        imageProxy.close()
+                    }
                 }
-            }
 
-            try {
-                cameraProvider.unbindAll()
-                cameraProvider.bindToLifecycle(
-                    lifecycleOwner,
-                    CameraSelector.DEFAULT_BACK_CAMERA,
-                    preview,
-                    imageAnalysis
-                )
-            } catch (e: Exception) {
-                e.printStackTrace()
+                try {
+                    cameraProvider?.unbindAll()
+                    cameraProvider?.bindToLifecycle(
+                        lifecycleOwner,
+                        CameraSelector.DEFAULT_BACK_CAMERA,
+                        preview,
+                        imageAnalysis!!
+                    )
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            } else {
+                // Only bind preview when not scanning
+                try {
+                    cameraProvider?.unbindAll()
+                    cameraProvider?.bindToLifecycle(
+                        lifecycleOwner,
+                        CameraSelector.DEFAULT_BACK_CAMERA,
+                        preview
+                    )
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
         }
     }
@@ -122,19 +145,21 @@ fun QRScannerScreen(
                     .align(Alignment.TopCenter)
                     .padding(16.dp)
             ) {
-                Surface(
-                    modifier = Modifier.padding(8.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f),
-                    shape = MaterialTheme.shapes.medium
-                ) {
-                    Text(
-                        text = "Point camera at QR Code",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.titleMedium
-                    )
+                if (isScanning) {
+                    Surface(
+                        modifier = Modifier.padding(8.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f),
+                        shape = MaterialTheme.shapes.medium
+                    ) {
+                        Text(
+                            text = "Point camera at QR Code",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
                 }
 
                 // Display scanned content if available
@@ -166,7 +191,8 @@ fun QRScannerScreen(
                             ) {
                                 Button(
                                     onClick = {
-                                        scannedContent = null // Clear and continue scanning
+                                        scannedContent = null
+                                        isScanning = true  // Resume scanning
                                     }
                                 ) {
                                     Text("Scan Again")
