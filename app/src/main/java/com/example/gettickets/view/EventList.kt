@@ -1,19 +1,35 @@
 package com.example.gettickets.view
+import androidx.camera.core.Preview as CameraXPreview
 
 import android.os.Build
+import android.util.Log
+import android.view.ViewGroup
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageAnalysis
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import java.time.*
 import java.time.format.DateTimeFormatter
@@ -21,16 +37,34 @@ import java.time.format.DateTimeFormatter
 import com.example.gettickets.model.Event
 import com.example.gettickets.ui.state.EventUiState
 import com.example.gettickets.viewmodel.EventViewModel
+import com.google.zxing.BinaryBitmap
+import com.google.zxing.MultiFormatReader
+import com.google.zxing.PlanarYUVLuminanceSource
+import com.google.zxing.common.HybridBinarizer
 
-@RequiresApi(Build.VERSION_CODES.O)
+@RequiresApi(Build.VERSION_CODES.P)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EventListScreen(
     modifier: Modifier = Modifier,
     viewModel: EventViewModel = hiltViewModel(),
-    onEventClick: (Event) -> Unit = {}
+    onEventClick: (Event) -> Unit = {},
+    onScanClick: () -> Unit = {} // Add this parameter
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var showScanner by remember { mutableStateOf(false) }
+
+    if (showScanner) {
+        QRScannerScreen(
+            onQRCodeScanned = { qrContent ->
+                // Handle the scanned QR code content
+                showScanner = false
+            },
+            onDismiss = {
+                showScanner = false
+            }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -41,6 +75,17 @@ fun EventListScreen(
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onScanClick,  // Show scanner when clicked
+                containerColor = MaterialTheme.colorScheme.primaryContainer
+            ) {
+                Icon(
+                    imageVector = Icons.Default.LocationOn,
+                    contentDescription = "Scan QR Code"
+                )
+            }
         }
     ) { paddingValues ->
         Box(
@@ -169,3 +214,4 @@ fun EventCard(
         }
     }
 }
+

@@ -55,6 +55,9 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.camera.view)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.espresso.core)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -92,6 +95,23 @@ dependencies {
     implementation ("androidx.hilt:hilt-navigation-compose:1.1.0")
 
     implementation ("com.google.zxing:core:3.5.1")
+
+    val camerax_version = "1.3.1"
+
+    // CameraX
+    implementation ("androidx.camera:camera-core:${camerax_version}")
+    implementation ("androidx.camera:camera-camera2:${camerax_version}")
+    implementation ("androidx.camera:camera-lifecycle:${camerax_version}")
+    implementation ("androidx.camera:camera-view:${camerax_version}")
+
+    implementation ("com.google.mlkit:barcode-scanning:17.2.0")
+
+    implementation ("androidx.compose.runtime:runtime")
+    implementation ("androidx.compose.runtime:runtime-livedata")
+    implementation ("androidx.compose.material3:material3")
+
+    // Activity Compose (for permission handling)
+    implementation ("androidx.activity:activity-compose:1.8.2")
 }
 
 
