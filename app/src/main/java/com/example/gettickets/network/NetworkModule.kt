@@ -1,5 +1,6 @@
 package com.example.gettickets.network
 
+import com.example.gettickets.api.BookingApiService
 import com.example.gettickets.api.EventApiService
 import dagger.Module
 import dagger.Provides
@@ -26,5 +27,11 @@ object NetworkModule {
     @Singleton
     fun provideEventApiService(retrofit: Retrofit): EventApiService {
         return retrofit.create(EventApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideBookingApiService(retrofit: Retrofit): BookingApiService {
+        return retrofit.create(BookingApiService::class.java)
     }
 }

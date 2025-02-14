@@ -90,6 +90,8 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
 
     implementation ("androidx.hilt:hilt-navigation-compose:1.1.0")
+
+    implementation ("com.google.zxing:core:3.5.1")
 }
 
 
