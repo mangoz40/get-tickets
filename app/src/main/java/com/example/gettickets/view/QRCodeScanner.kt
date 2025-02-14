@@ -20,6 +20,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import com.example.gettickets.model.BookingResponse
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
 
@@ -32,7 +33,7 @@ fun QRScannerScreen(
     val context = LocalContext.current
     var hasCameraPermission by remember { mutableStateOf(false) }
     var scannedContent by remember { mutableStateOf<String?>(null) }
-    var isScanning by remember { mutableStateOf(true) }
+    var isScanning by remember { mutableStateOf(true) } // Wanted to try tracing during scan
 
     // Permission launcher
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -159,51 +160,6 @@ fun QRScannerScreen(
                             textAlign = TextAlign.Center,
                             style = MaterialTheme.typography.titleMedium
                         )
-                    }
-                }
-
-                // Display scanned content if available
-                scannedContent?.let { content ->
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Surface(
-                        modifier = Modifier.padding(8.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f),
-                        shape = MaterialTheme.shapes.medium
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp)
-                        ) {
-                            Text(
-                                text = "Scanned Content:",
-                                style = MaterialTheme.typography.titleSmall
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = content,
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Button(
-                                    onClick = {
-                                        scannedContent = null
-                                        isScanning = true  // Resume scanning
-                                    }
-                                ) {
-                                    Text("Scan Again")
-                                }
-                                Button(
-                                    onClick = onDismiss
-                                ) {
-                                    Text("Done")
-                                }
-                            }
-                        }
                     }
                 }
             }

@@ -3,7 +3,6 @@ package com.example.gettickets.navigation
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
-import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -16,12 +15,13 @@ import com.example.gettickets.view.ShowEvent
 
 sealed class Screen(val route: String) {
     object EventList : Screen("eventList")
+    object QRScanner : Screen("qrScanner")
     object Booking : Screen("booking/{eventId}") {
         fun createRoute(eventId: Int) = "booking/$eventId"
     }
-    object QRScanner : Screen("qrScanner")
-    object ShowEvent : Screen("booking/{eventId}") {
-        fun createRoute(eventId: Int) = "booking/$eventId"
+    //Reuse the showing event api
+    object ShowEvent : Screen("show-event/{eventId}") {
+        fun createRoute(eventId: Int) = "show-event/$eventId"
     }
 }
 
@@ -60,7 +60,10 @@ fun AppNavigation() {
         composable(Screen.QRScanner.route) {
             QRScannerScreen(
                 onQRCodeScanned = { qrContent ->
-                    navController.navigate(Screen.ShowEvent.createRoute(1))
+
+                    val idStr  = qrContent.split("-").last()
+                    val eventId = idStr.toInt()
+                    navController.navigate(Screen.ShowEvent.createRoute(eventId))
                 },
                 onDismiss = {
                     navController.popBackStack()

@@ -5,7 +5,6 @@ import android.os.Build
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -16,13 +15,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import com.example.gettickets.ui.state.BookingUiState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.gettickets.model.BookingResponse
-import com.example.gettickets.model.Event
 import com.example.gettickets.qrcode.generateQRCode
 import com.example.gettickets.qrcode.saveQRCodeToStorage
 import com.example.gettickets.ui.state.BookApiState
@@ -31,7 +27,6 @@ import com.example.gettickets.viewmodel.BookViewModel
 
 import java.time.format.DateTimeFormatter
 import androidx.compose.ui.platform.LocalContext
-import java.security.AccessController.getContext
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -39,8 +34,8 @@ import java.security.AccessController.getContext
 fun BookingScreen(
     eventId: Int,
     onNavigateBack: () -> Unit,
-    viewModel: BookingViewModel = hiltViewModel(),
-    viewModelBook: BookViewModel = hiltViewModel()
+    viewModel: BookingViewModel = hiltViewModel(), // I know the names are confusing this is for get request booking page in general
+    viewModelBook: BookViewModel = hiltViewModel() //this is for sending the post request for booking
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val bookState by viewModelBook.bookState.collectAsState()
@@ -54,17 +49,18 @@ fun BookingScreen(
 
     val context = LocalContext.current
 
-    LaunchedEffect(bookState) {
+    LaunchedEffect(bookState) { //Send a book request to book a specefic event
         when (bookState) {
             is BookApiState.Success, is BookApiState.Error -> {
                 showDialog = true
-                qrBitmap = generateQRCode(((bookState as BookApiState.Success).response).toString())
+                val mapContent = (bookState as BookApiState.Success).response.qrcode
+                qrBitmap = generateQRCode((mapContent))
             }
             else -> {}
         }
     }
 
-    LaunchedEffect(eventId) {
+    LaunchedEffect(eventId) { // Load an event by ID
         viewModel.loadEvent(eventId)
     }
 
@@ -98,23 +94,27 @@ fun BookingScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     if (bookState is BookApiState.Success) {
-                        val qrcode = (bookState as BookApiState.Success).response
-                        val qrBitmap = remember { generateQRCode(qrcode.toString()) }
+                        val qrcode = (bookState as BookApiState.Success).response.qrcode
 
                         // Display the QR Code
-                        Image(
-                            bitmap = qrBitmap.asImageBitmap(),
-                            contentDescription = "QR Code",
-                            modifier = Modifier.size(200.dp)
-                        )
+                        qrBitmap?.let {
+                            Image(
+                                bitmap = it.asImageBitmap(),
+                                contentDescription = "QR Code",
+                                modifier = Modifier.size(200.dp)
+                            )
+                        }
 
                         Spacer(modifier = Modifier.height(16.dp))
 
                         // Button to Download QR Code
                         Button(onClick = {
-                            val saved = saveQRCodeToStorage(context, qrBitmap, "QRCode_1.png")
+                            val saved = qrBitmap?.let {
+                                saveQRCodeToStorage(context,
+                                    it, "QRCode_1.png")
+                            }
 
-                            if (saved) {
+                            if (saved == true) {
                                 Toast.makeText(context, "QR Code saved successfully!", Toast.LENGTH_SHORT).show()
                             } else {
                                 Toast.makeText(context, "Failed to save QR Code!", Toast.LENGTH_SHORT).show()

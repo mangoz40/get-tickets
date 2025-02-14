@@ -52,9 +52,6 @@ fun EventListScreen(
     onScanClick: () -> Unit = {} // Add this parameter
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    var showScanner by remember { mutableStateOf(false) }
-
-
 
     Scaffold(
         topBar = {
