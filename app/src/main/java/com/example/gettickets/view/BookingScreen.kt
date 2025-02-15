@@ -138,8 +138,6 @@ fun BookingScreen(
         )
     }
 
-
-
     Scaffold(
         topBar = {
             TopAppBar(

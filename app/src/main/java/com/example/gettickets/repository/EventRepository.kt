@@ -7,8 +7,6 @@ import com.example.gettickets.model.Event
 import com.example.gettickets.util.Resource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 class EventRepository @Inject constructor(
@@ -20,7 +18,6 @@ class EventRepository @Inject constructor(
             emit(Resource.Loading())
             val response = api.getEvents()
             if (response.isSuccessful) {
-                val ress = response.body()
                 val events = response.body()?.map { it.toEvent() } ?: emptyList()
                 emit(Resource.Success(events))
             } else {

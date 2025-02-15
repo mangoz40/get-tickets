@@ -7,7 +7,7 @@ data class Event(
     val title: String,
     val description: String?,
     val location: String?,
-    //val isBookmarked: Boolean = false
+    //val isBookmarked: Boolean = false //something like status for future use
     val available_tickets: Int = 4,
     val price: Double = 0.0,
     val date: String,

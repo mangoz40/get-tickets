@@ -61,7 +61,7 @@ fun AppNavigation() {
             QRScannerScreen(
                 onQRCodeScanned = { qrContent ->
 
-                    val idStr  = qrContent.split("-").last()
+                    val idStr  = qrContent.split("-").last()  // Last value after - is the Event ID
                     val eventId = idStr.toInt()
                     navController.navigate(Screen.ShowEvent.createRoute(eventId))
                 },

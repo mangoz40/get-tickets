@@ -12,19 +12,10 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
 
-
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.Modifier
-
-
 fun saveQRCodeToStorage(context: Context, bitmap: Bitmap, fileName: String = "QRCode.png"): Boolean {
     return try {
         val fos: OutputStream? = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-            // For Android 10+ use MediaStore
+            // For Android 10+ use MediaStore, akutero
             val contentValues = ContentValues().apply {
                 put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
                 put(MediaStore.MediaColumns.MIME_TYPE, "image/png")

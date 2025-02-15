@@ -16,10 +16,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.gettickets.viewmodel.BookingViewModel
-import com.example.gettickets.viewmodel.BookViewModel
 
 import java.time.format.DateTimeFormatter
-import androidx.compose.ui.platform.LocalContext
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
